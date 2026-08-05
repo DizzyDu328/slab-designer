@@ -7,28 +7,19 @@
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
   :root {
-    --primary: #1a5276;
-    --primary-light: #2980b9;
-    --bg: #f4f6f9;
-    --card: #fff;
-    --text: #2c3e50;
-    --text-light: #7f8c8d;
-    --border: #e8ecf1;
-    --accent: #27ae60;
-    --danger: #e74c3c;
-    --shadow: 0 2px 12px rgba(0,0,0,0.06);
+    --primary: #1a5276; --primary-light: #2980b9; --bg: #f4f6f9; --card: #fff;
+    --text: #2c3e50; --text-light: #7f8c8d; --border: #e8ecf1; --accent: #27ae60;
+    --danger: #e74c3c; --warning: #f39c12; --shadow: 0 2px 12px rgba(0,0,0,0.06);
   }
   body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
-  /* Header */
   .header { background: linear-gradient(135deg, #1a5276, #1a6e8e); color: #fff; padding: 0 24px; height: 56px; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 2px 8px rgba(0,0,0,0.15); position: sticky; top: 0; z-index: 10; }
-  .header h1 { font-size: 17px; font-weight: 600; letter-spacing: 0.5px; }
+  .header h1 { font-size: 17px; font-weight: 600; }
   .header .user { display: flex; align-items: center; gap: 16px; font-size: 14px; }
   .header .logout { background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.3); color: #fff; padding: 6px 16px; border-radius: 6px; cursor: pointer; font-size: 13px; transition: background 0.2s; }
   .header .logout:hover { background: rgba(255,255,255,0.25); }
 
-  /* Layout */
   .layout { display: flex; height: calc(100vh - 56px); }
-  .sidebar { width: 200px; background: #fff; border-right: 1px solid var(--border); padding: 16px 0; flex-shrink: 0; }
+  .sidebar { width: 210px; background: #fff; border-right: 1px solid var(--border); padding: 16px 0; flex-shrink: 0; }
   .sidebar .nav-item { padding: 12px 24px; cursor: pointer; font-size: 14px; color: var(--text-light); transition: all 0.15s; border-left: 3px solid transparent; display: flex; align-items: center; gap: 10px; }
   .sidebar .nav-item:hover { background: #f8fafc; color: var(--text); }
   .sidebar .nav-item.active { background: #eef5fa; color: var(--primary); border-left-color: var(--primary-light); font-weight: 600; }
@@ -38,9 +29,54 @@
   .panel.active { display: block; animation: fadeIn 0.2s; }
   @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
 
-  /* Cards */
   .card { background: var(--card); border-radius: 12px; padding: 24px; box-shadow: var(--shadow); margin-bottom: 20px; }
   .card h2 { font-size: 17px; margin-bottom: 16px; color: var(--primary); border-bottom: 2px solid #eef5fa; padding-bottom: 10px; }
+  .card h3 { font-size: 14px; color: var(--text-light); margin-bottom: 12px; font-weight: 500; }
+
+  /* === Upload Zone === */
+  .upload-zone { border: 2px dashed var(--border); border-radius: 12px; padding: 40px; text-align: center; cursor: pointer; transition: all 0.2s; background: #fafbfc; }
+  .upload-zone:hover, .upload-zone.drag-over { border-color: var(--primary-light); background: #eef5fa; }
+  .upload-zone .icon { font-size: 48px; margin-bottom: 12px; }
+  .upload-zone p { color: var(--text-light); font-size: 14px; margin-bottom: 4px; }
+  .upload-zone .hint { color: #aaa; font-size: 12px; }
+
+  /* === Parsed Specs === */
+  .specs-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px; margin-top: 12px; }
+  .spec-item { background: #f8fafc; border-radius: 8px; padding: 12px 16px; border: 1px solid var(--border); }
+  .spec-item .spec-label { font-size: 11px; color: var(--text-light); margin-bottom: 4px; }
+  .spec-item .spec-value { font-size: 15px; font-weight: 600; color: var(--text); }
+  .spec-item .spec-value.null { color: #ccc; font-weight: 400; font-style: italic; }
+
+  /* === Items table === */
+  .items-table { width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 12px; }
+  .items-table th { background: #f0f4f8; padding: 8px 10px; text-align: left; font-weight: 600; border-bottom: 2px solid var(--border); }
+  .items-table td { padding: 8px 10px; border-bottom: 1px solid var(--border); }
+  .items-table tr:hover td { background: #fafcfd; }
+
+  /* === User requirements === */
+  .reqs-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 14px; }
+  .form-group { display: flex; flex-direction: column; }
+  .form-group label { font-size: 13px; color: var(--text-light); margin-bottom: 4px; font-weight: 500; }
+  .form-group input, .form-group select, .form-group textarea { padding: 10px 14px; border: 2px solid var(--border); border-radius: 8px; font-size: 14px; outline: none; transition: border-color 0.2s; background: #fff; font-family: inherit; }
+  .form-group input:focus, .form-group select:focus, .form-group textarea:focus { border-color: var(--primary-light); }
+  .form-group textarea { resize: vertical; min-height: 60px; }
+
+  .btn-primary { padding: 12px 32px; background: linear-gradient(135deg, var(--primary), var(--primary-light)); color: #fff; border: none; border-radius: 8px; font-size: 15px; font-weight: 600; cursor: pointer; transition: transform 0.1s, box-shadow 0.2s; }
+  .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 6px 16px rgba(26,82,118,0.3); }
+  .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+  .btn-secondary { padding: 10px 24px; background: #fff; color: var(--primary); border: 2px solid var(--primary); border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; }
+
+  .results-table { width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 16px; }
+  .results-table th { background: #f0f4f8; padding: 10px 12px; text-align: left; font-weight: 600; border-bottom: 2px solid var(--border); white-space: nowrap; }
+  .results-table td { padding: 10px 12px; border-bottom: 1px solid var(--border); }
+  .results-table tr:hover td { background: #fafcfd; }
+  .results-table .best td { background: #e8f5e9; font-weight: 600; }
+  .tag { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; }
+  .tag-pass { background: #e8f5e9; color: #27ae60; }
+  .tag-fail { background: #fdecea; color: #e74c3c; }
+  .tag-warn { background: #fef3cd; color: #856404; }
+
+  .section-divider { border: none; border-top: 1px solid var(--border); margin: 24px 0; }
 
   /* Chat */
   .chat-container { display: flex; flex-direction: column; height: calc(100vh - 200px); }
@@ -54,49 +90,33 @@
   .msg.user .bubble { background: var(--primary); color: #fff; border-bottom-right-radius: 4px; }
   .msg.assistant .bubble { background: #f1f3f5; color: var(--text); border-bottom-left-radius: 4px; white-space: pre-wrap; }
   .chat-input-area { display: flex; gap: 10px; padding-top: 12px; border-top: 1px solid var(--border); }
-  .chat-input-area input { flex: 1; padding: 12px 16px; border: 2px solid var(--border); border-radius: 8px; font-size: 14px; outline: none; transition: border-color 0.2s; }
+  .chat-input-area input { flex: 1; padding: 12px 16px; border: 2px solid var(--border); border-radius: 8px; font-size: 14px; outline: none; }
   .chat-input-area input:focus { border-color: var(--primary-light); }
-  .chat-input-area button { padding: 12px 24px; background: var(--primary); color: #fff; border: none; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; transition: background 0.2s; white-space: nowrap; }
-  .chat-input-area button:hover { background: var(--primary-light); }
-  .chat-input-area button:disabled { opacity: 0.5; cursor: not-allowed; }
+  .chat-input-area button { padding: 12px 24px; background: var(--primary); color: #fff; border: none; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; white-space: nowrap; }
 
-  /* Forms */
-  .form-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 16px; }
-  .form-group { display: flex; flex-direction: column; }
-  .form-group label { font-size: 13px; color: var(--text-light); margin-bottom: 4px; font-weight: 500; }
-  .form-group input, .form-group select { padding: 10px 14px; border: 2px solid var(--border); border-radius: 8px; font-size: 14px; outline: none; transition: border-color 0.2s; background: #fff; }
-  .form-group input:focus, .form-group select:focus { border-color: var(--primary-light); }
-  .form-group .hint { font-size: 11px; color: #999; margin-top: 2px; }
-
-  /* Buttons */
-  .btn-primary { padding: 12px 32px; background: linear-gradient(135deg, var(--primary), var(--primary-light)); color: #fff; border: none; border-radius: 8px; font-size: 15px; font-weight: 600; cursor: pointer; transition: transform 0.1s, box-shadow 0.2s; }
-  .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 6px 16px rgba(26,82,118,0.3); }
-  .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
-
-  /* Results table */
-  .results-table { width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 16px; }
-  .results-table th { background: #f0f4f8; padding: 10px 12px; text-align: left; font-weight: 600; color: var(--text); border-bottom: 2px solid var(--border); white-space: nowrap; }
-  .results-table td { padding: 10px 12px; border-bottom: 1px solid var(--border); }
-  .results-table tr:hover td { background: #fafcfd; }
-  .results-table .best td { background: #e8f5e9; font-weight: 600; }
-  .tag { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; }
-  .tag-pass { background: #e8f5e9; color: #27ae60; }
-  .tag-fail { background: #fdecea; color: #e74c3c; }
-
-  /* Empty / loading states */
-  .empty-state { text-align: center; padding: 60px 20px; color: var(--text-light); }
-  .empty-state .icon { font-size: 48px; margin-bottom: 12px; }
   .spinner { display: inline-block; width: 20px; height: 20px; border: 3px solid rgba(255,255,255,0.3); border-top-color: #fff; border-radius: 50%; animation: spin 0.8s linear infinite; }
+  .spinner-dark { border-color: rgba(26,82,118,0.2); border-top-color: var(--primary); }
   @keyframes spin { to { transform: rotate(360deg); } }
 
-  /* Responsive */
+  .status-bar { display: flex; align-items: center; gap: 8px; padding: 8px 14px; border-radius: 8px; font-size: 13px; margin-top: 12px; }
+  .status-bar.success { background: #e8f5e9; color: #27ae60; }
+  .status-bar.error { background: #fdecea; color: #e74c3c; }
+  .status-bar.info { background: #eef5fa; color: var(--primary); }
+
+  .step-indicator { display: flex; gap: 0; margin-bottom: 24px; }
+  .step { flex: 1; text-align: center; padding: 10px; font-size: 13px; color: var(--text-light); background: #f0f4f8; position: relative; }
+  .step:first-child { border-radius: 8px 0 0 8px; }
+  .step:last-child { border-radius: 0 8px 8px 0; }
+  .step.active { background: var(--primary); color: #fff; font-weight: 600; }
+  .step.done { background: var(--accent); color: #fff; }
+
   @media (max-width: 768px) {
     .layout { flex-direction: column; }
     .sidebar { width: 100%; flex-direction: row; display: flex; padding: 0; overflow-x: auto; }
     .sidebar .nav-item { padding: 12px 16px; border-left: none; border-bottom: 3px solid transparent; white-space: nowrap; }
     .sidebar .nav-item.active { border-bottom-color: var(--primary-light); border-left-color: transparent; }
     .main { padding: 16px; }
-    .form-grid { grid-template-columns: 1fr; }
+    .specs-grid, .reqs-grid { grid-template-columns: 1fr; }
   }
 </style>
 </head>
@@ -104,120 +124,97 @@
 
 <!-- ========== Header ========== -->
 <div class="header">
-  <h1>🛠 热轧复合板智能设计系统</h1>
+  <h1>热轧复合板智能设计系统</h1>
   <div class="user">
     <span>管理员</span>
     <button class="logout" onclick="logout()">退出登录</button>
   </div>
 </div>
 
-<!-- ========== Layout ========== -->
 <div class="layout">
   <!-- Sidebar -->
   <div class="sidebar">
-    <div class="nav-item active" data-panel="chat" onclick="switchPanel('chat')">
+    <div class="nav-item active" data-panel="smart" onclick="switchPanel('smart')">
+      <span class="nav-icon">🤖</span> 智能设计
+    </div>
+    <div class="nav-item" data-panel="chat" onclick="switchPanel('chat')">
       <span class="nav-icon">💬</span> 智能问答
     </div>
     <div class="nav-item" data-panel="design" onclick="switchPanel('design')">
-      <span class="nav-icon">📐</span> 板坯设计
+      <span class="nav-icon">📐</span> 手动设计
     </div>
     <div class="nav-item" data-panel="rules" onclick="switchPanel('rules')">
       <span class="nav-icon">📋</span> 设计规则
     </div>
   </div>
 
-  <!-- Main content -->
   <div class="main">
 
-    <!-- ===== Chat Panel ===== -->
-    <div class="panel active" id="panel-chat">
-      <div class="card" style="height: calc(100vh - 160px); display: flex; flex-direction: column;">
-        <h2>💬 智能问答</h2>
-        <div class="chat-messages" id="chatMessages">
-          <div class="msg assistant">
-            <div class="avatar">AI</div>
-            <div class="bubble">您好！我是热轧复合板设计助手。
+    <!-- ========== 智能设计 ========== -->
+    <div class="panel active" id="panel-smart">
 
-我可以帮您：
-• 解答复合板设计中的工艺问题
-• 理解压缩比、占款比等参数含义
-• 分析不同设计方案的优劣
-• 根据成品要求推荐板坯参数
-
-请直接输入您的问题。</div>
-          </div>
+      <!-- Step 1: Upload -->
+      <div class="card" id="card-upload">
+        <h2>📄 第一步：上传生产通知单</h2>
+        <div class="upload-zone" id="uploadZone" onclick="document.getElementById('fileInput').click()">
+          <div class="icon">📁</div>
+          <p>点击上传或拖拽文件到此处</p>
+          <p class="hint">支持 .doc / .docx / .txt（生产通知单）</p>
         </div>
-        <div class="chat-input-area">
-          <input type="text" id="chatInput" placeholder="输入您的问题，例如：15.4mm厚的不锈钢复合板，压缩比一般取多少？" onkeydown="if(event.key==='Enter')sendMessage()">
-          <button id="chatSendBtn" onclick="sendMessage()">发送</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- ===== Design Panel ===== -->
-    <div class="panel" id="panel-design">
-      <div class="card">
-        <h2>📐 板坯设计计算器</h2>
-        <p style="color: #666; font-size: 14px; margin-bottom: 20px;">输入成品要求，自动生成最优板坯设计方案</p>
-        <div class="form-grid">
-          <div class="form-group">
-            <label>成品厚度 (mm) *</label>
-            <input type="number" id="targetThickness" value="15.4" step="0.1" min="1">
-          </div>
-          <div class="form-group">
-            <label>成品宽度 (mm)</label>
-            <input type="number" id="targetWidth" value="1580" step="1">
-          </div>
-          <div class="form-group">
-            <label>成品长度 (mm)</label>
-            <input type="number" id="targetLength" value="14900" step="10">
-          </div>
-          <div class="form-group">
-            <label>不锈钢厚度 (mm)</label>
-            <select id="ssThickness">
-              <option value="">自动选择</option>
-              <option value="12">12</option>
-              <option value="14">14</option>
-              <option value="16">16</option>
-            </select>
-            <div class="hint">留空则自动遍历标准规格</div>
-          </div>
-          <div class="form-group">
-            <label>不锈钢宽度 (mm)</label>
-            <select id="ssWidth">
-              <option value="">自动选择</option>
-              <option value="1500">1500</option>
-              <option value="2000">2000</option>
-            </select>
-            <div class="hint">留空则自动遍历标准规格</div>
-          </div>
-        </div>
-        <div style="margin-top: 20px;">
-          <button class="btn-primary" id="designBtn" onclick="runDesign()">开始计算</button>
-          <span id="designStatus" style="margin-left: 12px; font-size: 14px; color: var(--text-light);"></span>
-        </div>
+        <input type="file" id="fileInput" accept=".doc,.docx,.txt" style="display:none" onchange="handleFileSelect(this.files[0])">
+        <div id="uploadStatus"></div>
       </div>
 
-      <div class="card" id="designResults" style="display:none;">
-        <h2>设计方案结果</h2>
-        <p id="designSummary" style="font-size: 14px; color: #666; margin-bottom: 4px;"></p>
+      <!-- Step 2: Parsed order -->
+      <div class="card" id="card-order" style="display:none;">
+        <h2>📋 第二步：AI 识别结果</h2>
+        <div id="orderInfo"></div>
+        <div id="orderItems"></div>
+        <div id="orderMeta"></div>
+      </div>
+
+      <!-- Step 3: User requirements -->
+      <div class="card" id="card-reqs" style="display:none;">
+        <h2>✏️ 第三步：补充要求</h2>
+        <div class="reqs-grid">
+          <div class="form-group">
+            <label>交货优先级</label>
+            <select id="priority">
+              <option value="normal">一般（按期交货）</option>
+              <option value="urgent">紧急（必须保交货期）</option>
+              <option value="key">重点客户</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>指定轧制厂</label>
+            <select id="factory">
+              <option value="">不限（由系统决定）</option>
+              <option value="factory-a">A 厂</option>
+              <option value="factory-b">B 厂</option>
+              <option value="factory-c">C 厂</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>额外要求</label>
+            <textarea id="extraReqs" placeholder="例如：不锈钢必须用 2000 宽、需取样板、复板加宽等"></textarea>
+          </div>
+        </div>
+        <hr class="section-divider">
+        <button class="btn-primary" id="smartDesignBtn" onclick="runSmartDesign()">🚀 开始智能计算板坯</button>
+        <span id="smartStatus" style="margin-left: 12px; font-size: 14px; color: var(--text-light);"></span>
+      </div>
+
+      <!-- Step 4: Results -->
+      <div class="card" id="card-results" style="display:none;">
+        <h2>📊 设计方案结果</h2>
+        <p id="smartSummary" style="font-size: 14px; color: #666; margin-bottom: 4px;"></p>
         <div style="overflow-x: auto;">
-          <table class="results-table" id="resultsTable">
+          <table class="results-table" id="smartResultsTable">
             <thead>
               <tr>
-                <th>排名</th>
-                <th>覆板厚</th>
-                <th>基板厚</th>
-                <th>不锈钢厚</th>
-                <th>不锈钢宽</th>
-                <th>轧制厚</th>
-                <th>板坯厚</th>
-                <th>板坯宽</th>
-                <th>板坯长</th>
-                <th>轧制长</th>
-                <th>压缩比</th>
-                <th>占款比</th>
-                <th>约束</th>
+                <th>排名</th><th>覆板厚</th><th>基板厚</th><th>不锈钢厚</th><th>不锈钢宽</th>
+                <th>轧制厚</th><th>板坯厚</th><th>板坯宽</th><th>板坯长</th><th>轧制长</th>
+                <th>压缩比</th><th>占款比</th><th>约束</th>
               </tr>
             </thead>
             <tbody></tbody>
@@ -226,27 +223,68 @@
       </div>
     </div>
 
-    <!-- ===== Rules Panel ===== -->
+    <!-- ========== 智能问答 ========== -->
+    <div class="panel" id="panel-chat">
+      <div class="card" style="height: calc(100vh - 160px); display: flex; flex-direction: column;">
+        <h2>💬 智能问答</h2>
+        <div class="chat-messages" id="chatMessages">
+          <div class="msg assistant">
+            <div class="avatar">AI</div>
+            <div class="bubble">您好！我是热轧复合板设计助手。
+您可以提问工艺问题，也可以直接描述成品要求让我推荐方案。</div>
+          </div>
+        </div>
+        <div class="chat-input-area">
+          <input type="text" id="chatInput" placeholder="例如：15.4mm 厚的不锈钢复合板，压缩比一般取多少？" onkeydown="if(event.key==='Enter')sendMessage()">
+          <button id="chatSendBtn" onclick="sendMessage()">发送</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ========== 手动设计 ========== -->
+    <div class="panel" id="panel-design">
+      <div class="card">
+        <h2>📐 手动板坯设计计算器</h2>
+        <p style="color: #666; font-size: 14px; margin-bottom: 20px;">直接输入成品尺寸，自动生成最优板坯方案</p>
+        <div class="reqs-grid">
+          <div class="form-group"><label>成品厚度 (mm) *</label><input type="number" id="targetThickness" value="15.4" step="0.1" min="1"></div>
+          <div class="form-group"><label>成品宽度 (mm)</label><input type="number" id="targetWidth" value="1580" step="1"></div>
+          <div class="form-group"><label>成品长度 (mm)</label><input type="number" id="targetLength" value="14900" step="10"></div>
+          <div class="form-group"><label>不锈钢厚度 (mm)</label><select id="ssThickness"><option value="">自动选择</option><option value="12">12</option><option value="14">14</option><option value="16">16</option></select></div>
+          <div class="form-group"><label>不锈钢宽度 (mm)</label><select id="ssWidth"><option value="">自动选择</option><option value="1500">1500</option><option value="2000">2000</option></select></div>
+        </div>
+        <div style="margin-top: 20px;">
+          <button class="btn-primary" id="designBtn" onclick="runDesign()">开始计算</button>
+          <span id="designStatus" style="margin-left: 12px; font-size: 14px; color: var(--text-light);"></span>
+        </div>
+      </div>
+      <div class="card" id="designResults" style="display:none;">
+        <h2>设计方案结果</h2>
+        <p id="designSummary" style="font-size: 14px; color: #666; margin-bottom: 4px;"></p>
+        <div style="overflow-x: auto;">
+          <table class="results-table" id="resultsTable">
+            <thead><tr><th>排名</th><th>覆板厚</th><th>基板厚</th><th>不锈钢厚</th><th>不锈钢宽</th><th>轧制厚</th><th>板坯厚</th><th>板坯宽</th><th>板坯长</th><th>轧制长</th><th>压缩比</th><th>占款比</th><th>约束</th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ========== 设计规则 ========== -->
     <div class="panel" id="panel-rules">
       <div class="card">
         <h2>📋 设计规则参考</h2>
         <div style="font-size: 14px; line-height: 2;">
-          <p><b>规则 1：</b>查标准确定基板下限和覆板下限，基板下限直接参与运算，覆板下限尽量逼近。</p>
-          <p><b>规则 2：</b>不锈钢标准厚度：12 / 14 / 16 mm；宽度：1500 / 2000 mm。不合适走定制。</p>
+          <p><b>规则 1：</b>查标准确定基板下限和覆板下限</p>
+          <p><b>规则 2：</b>不锈钢标准厚度 12/14/16 mm；宽度 1500/2000 mm</p>
           <p><b>规则 3：</b>轧制厚度 = (覆板厚 + 基板厚) × 2 + 0.6</p>
           <p><b>规则 4：</b>板坯厚度 = 立条厚度 + 基板 × 2</p>
-          <p><b>规则 5：</b>轧制长度 = ceil(压缩比) × 100 + 200（纵轧额外 +100）</p>
-          <p><b>规则 6：</b>轧制宽度 / 板坯宽度 × 不锈钢宽 - 成品尺寸 ∈ [30, 60]</p>
-          <p><b>规则 7：</b>复板尺寸 = 基板尺寸 - 80（可放宽至 120）</p>
+          <p><b>规则 5：</b>轧制长度 = ceil(压缩比) × 100 + 200</p>
+          <p><b>规则 6：</b>轧宽/板坯宽 × 不锈钢宽 - 成品 ∈ [30, 60]</p>
+          <p><b>规则 7：</b>复板 = 基板 - 80</p>
           <p><b>规则 8：</b>占款比 ≤ 1.6</p>
           <br>
-          <p><b>设备约束：</b></p>
-          <p>翻板机最大宽度：2500 mm</p>
-          <p>埋弧焊最大长度：3900 mm</p>
-          <p>宽板轧机最大厚度：630 mm</p>
-          <p>取样板：60 吨一张，重要/外国订单多留 400 mm</p>
-          <br>
-          <p style="color: #999; font-size: 12px;">完整规则文档请参考：热轧复合板坯料设计规则手册.docx</p>
+          <p><b>设备约束：</b>翻板机 ≤ 2500mm | 埋弧焊 ≤ 3900mm | 宽板 ≤ 630mm</p>
         </div>
       </div>
     </div>
@@ -270,15 +308,8 @@ function api(path, options = {}) {
   });
 }
 
-function logout() {
-  localStorage.removeItem('slab_token');
-  window.location.href = '/login.html';
-}
-
-// Check auth
-if (!token) {
-  window.location.href = '/login.html';
-}
+function logout() { localStorage.removeItem('slab_token'); window.location.href = '/login.html'; }
+if (!token) { window.location.href = '/login.html'; }
 
 // ========== Navigation ==========
 function switchPanel(name) {
@@ -288,9 +319,148 @@ function switchPanel(name) {
   document.querySelector(`[data-panel="${name}"]`).classList.add('active');
 }
 
+// ========== Smart Design Workflow ==========
+let parsedOrder = null;
+
+function handleFileSelect(file) {
+  if (!file) return;
+  const zone = document.getElementById('uploadZone');
+  zone.innerHTML = '<div class="spinner spinner-dark"></div><p style="margin-top:8px;">正在解析文件...</p>';
+
+  const formData = new FormData();
+  formData.append('file', file);
+
+  fetch(API + '/api/parse-order', {
+    method: 'POST',
+    headers: { 'Authorization': `Bearer ${token}` },
+    body: formData,
+  }).then(async r => {
+    const data = await r.json();
+    if (!r.ok) throw new Error(data.error || '解析失败');
+    parsedOrder = data.order;
+    showParsedOrder(data.order);
+    document.getElementById('card-order').style.display = 'block';
+    document.getElementById('card-reqs').style.display = 'block';
+    zone.innerHTML = '<div class="icon">✅</div><p style="color:#27ae60;font-weight:600;">解析成功</p><p class="hint">' + (file.name) + '</p>';
+  }).catch(e => {
+    zone.innerHTML = '<div class="icon">❌</div><p style="color:#e74c3c;font-weight:600;">解析失败</p><p class="hint">' + e.message + '</p>';
+  });
+}
+
+// Drag & drop
+const uploadZone = document.getElementById('uploadZone');
+uploadZone.addEventListener('dragover', e => { e.preventDefault(); uploadZone.classList.add('drag-over'); });
+uploadZone.addEventListener('dragleave', () => uploadZone.classList.remove('drag-over'));
+uploadZone.addEventListener('drop', e => {
+  e.preventDefault();
+  uploadZone.classList.remove('drag-over');
+  const file = e.dataTransfer.files[0];
+  if (file) handleFileSelect(file);
+});
+
+function showParsedOrder(order) {
+  const info = document.getElementById('orderInfo');
+  info.innerHTML = `
+    <div class="specs-grid">
+      <div class="spec-item"><div class="spec-label">订单编号</div><div class="spec-value">${order.orderId || '<span class="null">未识别</span>'}</div></div>
+      <div class="spec-item"><div class="spec-label">合同编号</div><div class="spec-value">${order.contractNo || '<span class="null">未识别</span>'}</div></div>
+      <div class="spec-item"><div class="spec-label">订单属性</div><div class="spec-value">${order.orderType || '<span class="null">未识别</span>'}</div></div>
+      <div class="spec-item"><div class="spec-label">钢种</div><div class="spec-value">${order.steelGrade || '<span class="null">未识别</span>'}</div></div>
+    </div>`;
+
+  // Items table
+  const itemsDiv = document.getElementById('orderItems');
+  if (order.items && order.items.length > 0) {
+    itemsDiv.innerHTML = `
+      <h3 style="margin-top:16px;">成品规格明细</h3>
+      <div style="overflow-x:auto;"><table class="items-table">
+        <thead><tr><th>#</th><th>复层厚(mm)</th><th>基层厚(mm)</th><th>宽度(mm)</th><th>长度(mm)</th><th>单重(t)</th><th>张数</th><th>吨位</th><th>备注</th></tr></thead>
+        <tbody>${order.items.map(it => `
+          <tr>
+            <td>${it.seq || ''}</td><td><b>${it.cladThickness ?? '-'}</b></td><td><b>${it.baseThickness ?? '-'}</b></td>
+            <td><b>${it.width ?? '-'}</b></td><td><b>${it.length ?? '-'}</b></td>
+            <td>${it.weight ?? '-'}</td><td>${it.quantity_sheets ?? '-'}</td><td>${it.quantity_tons ?? '-'}</td><td>${it.remark || ''}</td>
+          </tr>`).join('')}</tbody>
+      </table></div>`;
+  } else {
+    itemsDiv.innerHTML = '<p style="color:var(--text-light);margin-top:12px;">未识别到成品规格明细</p>';
+  }
+
+  // Meta info
+  const meta = document.getElementById('orderMeta');
+  meta.innerHTML = `
+    <div class="specs-grid" style="margin-top:12px;">
+      <div class="spec-item"><div class="spec-label">技术质量要求</div><div class="spec-value" style="font-size:13px;">${order.techRequirements || '<span class="null">未填写</span>'}</div></div>
+      <div class="spec-item"><div class="spec-label">计重方式</div><div class="spec-value">${order.weighMethod || '<span class="null">未填写</span>'}</div></div>
+      <div class="spec-item"><div class="spec-label">合同交货时间</div><div class="spec-value">${order.deliveryDate || '<span class="null">未填写</span>'}</div></div>
+      <div class="spec-item"><div class="spec-label">货运方式</div><div class="spec-value">${order.shippingMethod || '<span class="null">未填写</span>'}</div></div>
+    </div>`;
+
+  // Scroll to parsed order
+  document.getElementById('card-order').scrollIntoView({ behavior: 'smooth' });
+}
+
+async function runSmartDesign() {
+  if (!parsedOrder || !parsedOrder.items || parsedOrder.items.length === 0) {
+    alert('请先上传并解析生产通知单');
+    return;
+  }
+
+  const btn = document.getElementById('smartDesignBtn');
+  const status = document.getElementById('smartStatus');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span> 计算中...';
+  status.textContent = '';
+
+  const item = parsedOrder.items[0]; // First item
+  const priority = document.getElementById('priority').value;
+  const factory = document.getElementById('factory').value;
+  const extraReqs = document.getElementById('extraReqs').value;
+
+  try {
+    const data = await api('/api/design', {
+      method: 'POST',
+      body: JSON.stringify({
+        targetThickness: parseFloat(item.cladThickness || 0) + parseFloat(item.baseThickness || 0) || null,
+        targetWidth: parseFloat(item.width) || null,
+        targetLength: parseFloat(item.length) || null,
+        priority,
+        factory: factory || null,
+        extraReqs: extraReqs || null,
+      }),
+    });
+
+    const resultDiv = document.getElementById('card-results');
+    resultDiv.style.display = 'block';
+    document.getElementById('smartSummary').textContent =
+      `订单 ${parsedOrder.orderId || ''}：共 ${data.count} 个可行方案 | 优先级：${priority} | 轧制厂：${factory || '不限'}`;
+
+    const tbody = document.querySelector('#smartResultsTable tbody');
+    tbody.innerHTML = data.results.map((r, i) => {
+      const allCheck = Object.values(r.checks).every(Boolean);
+      return `<tr class="${i === 0 && allCheck ? 'best' : ''}">
+        <td>${i + 1}</td><td>${r.cladThickness}</td><td>${r.baseThickness}</td><td>${r.ssThickness}</td><td>${r.ssWidth}</td>
+        <td>${r.rolledThickness}</td><td>${r.slabThickness}</td><td>${r.slabWidth}</td><td>${r.slabLength}</td><td>${r.rolledLength}</td>
+        <td>${r.compressionRatio}</td><td>${r.costRatio}</td>
+        <td>${allCheck ? '<span class="tag tag-pass">通过</span>' : '<span class="tag tag-fail">部分不满足</span>'}</td>
+      </tr>`;
+    }).join('');
+
+    resultDiv.scrollIntoView({ behavior: 'smooth' });
+    status.textContent = '计算完成';
+    status.style.color = '#27ae60';
+  } catch (e) {
+    status.textContent = '错误：' + e.message;
+    status.style.color = '#e74c3c';
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '🚀 开始智能计算板坯';
+  }
+}
+
 // ========== Chat ==========
 let chatMessages = [
-  { role: 'system', content: '你是热轧复合板（Hot-Rolled Clad Plate）坯料设计专家。你的知识涵盖：\n\n1. 轧制厚度 = (覆板厚+基板厚)×2+0.6\n2. 板坯厚度 = 立条厚度+基板×2\n3. 压缩比 = 板坯厚度/轧制厚度\n4. 轧制长度 = ceil(压缩比)×100+200（纵轧额外加100）\n5. 不锈钢标准厚度12/14/16，宽度1500/2000\n6. 轧宽/板坯宽×不锈钢宽-成品∈[30,60]\n7. 复板=基板-80\n8. 占款比≤1.6\n9. 翻板机最大宽2500，埋弧焊最大长3900，宽板厚≤630\n\n用简体中文简洁回答（不超过500字），专业准确。' },
+  { role: 'system', content: '你是热轧复合板坯料设计专家。用简体中文简洁回答（不超过500字），专业准确。' },
   { role: 'assistant', content: '您好！我是热轧复合板设计助手。请直接输入您的问题。' },
 ];
 
@@ -298,7 +468,6 @@ async function sendMessage() {
   const input = document.getElementById('chatInput');
   const text = input.value.trim();
   if (!text) return;
-
   input.value = '';
   const btn = document.getElementById('chatSendBtn');
   btn.disabled = true;
@@ -310,37 +479,25 @@ async function sendMessage() {
   try {
     const data = await api('/api/chat', {
       method: 'POST',
-      body: JSON.stringify({
-        messages: chatMessages.filter(m => m.role !== 'assistant' || chatMessages.indexOf(m) > 1).slice(-10),
-        temperature: 0.7,
-        max_tokens: 1500,
-      }),
+      body: JSON.stringify({ messages: chatMessages.filter(m => m.role !== 'system').slice(-10), temperature: 0.7, max_tokens: 1500 }),
     });
-    const reply = data.choices[0].message.content;
-    chatMessages.push({ role: 'assistant', content: reply });
+    chatMessages.push({ role: 'assistant', content: data.choices[0].message.content });
   } catch (e) {
-    chatMessages.push({ role: 'assistant', content: '抱歉，请求失败：' + e.message + '\n\n请确认 config.json 中已配置有效的 DeepSeek API Key。' });
+    chatMessages.push({ role: 'assistant', content: '抱歉，请求失败：' + e.message });
   }
-
   renderChat();
   btn.disabled = false;
   btn.textContent = '发送';
 }
 
 function renderChat() {
-  const container = document.getElementById('chatMessages');
-  container.innerHTML = chatMessages
+  document.getElementById('chatMessages').innerHTML = chatMessages
     .filter(m => m.role !== 'system')
-    .map((m, i) => `
-      <div class="msg ${m.role}">
-        <div class="avatar">${m.role === 'user' ? '我' : 'AI'}</div>
-        <div class="bubble">${m.content}</div>
-      </div>
-    `).join('');
-  container.scrollTop = container.scrollHeight;
+    .map(m => `<div class="msg ${m.role}"><div class="avatar">${m.role === 'user' ? '我' : 'AI'}</div><div class="bubble">${m.content}</div></div>`).join('');
+  document.getElementById('chatMessages').scrollTop = 1e9;
 }
 
-// ========== Design Calculator ==========
+// ========== Manual Design ==========
 async function runDesign() {
   const btn = document.getElementById('designBtn');
   const status = document.getElementById('designStatus');
@@ -350,7 +507,6 @@ async function runDesign() {
 
   const ssThick = document.getElementById('ssThickness').value;
   const ssW = document.getElementById('ssWidth').value;
-
   try {
     const data = await api('/api/design', {
       method: 'POST',
@@ -358,47 +514,24 @@ async function runDesign() {
         targetThickness: parseFloat(document.getElementById('targetThickness').value),
         targetWidth: parseFloat(document.getElementById('targetWidth').value) || null,
         targetLength: parseFloat(document.getElementById('targetLength').value) || null,
-        customSS: (ssThick || ssW) ? {
-          thickness: ssThick ? parseInt(ssThick) : undefined,
-          width: ssW ? parseInt(ssW) : undefined,
-        } : null,
+        customSS: (ssThick || ssW) ? { thickness: ssThick ? parseInt(ssThick) : undefined, width: ssW ? parseInt(ssW) : undefined } : null,
       }),
     });
-
-    const resultDiv = document.getElementById('designResults');
-    resultDiv.style.display = 'block';
-    document.getElementById('designSummary').textContent =
-      `共找到 ${data.count} 个可行方案（显示前 20 个，按综合评分排序）`;
-
-    const tbody = document.querySelector('#resultsTable tbody');
-    tbody.innerHTML = data.results.map((r, i) => {
-      const allCheck = Object.values(r.checks).every(Boolean);
-      return `
-        <tr class="${i === 0 && allCheck ? 'best' : ''}">
-          <td>${i + 1}</td>
-          <td>${r.cladThickness}</td>
-          <td>${r.baseThickness}</td>
-          <td>${r.ssThickness}</td>
-          <td>${r.ssWidth}</td>
-          <td>${r.rolledThickness}</td>
-          <td>${r.slabThickness}</td>
-          <td>${r.slabWidth}</td>
-          <td>${r.slabLength}</td>
-          <td>${r.rolledLength}</td>
-          <td>${r.compressionRatio}</td>
-          <td>${r.costRatio}</td>
-          <td>${allCheck ? '<span class="tag tag-pass">通过</span>' : '<span class="tag tag-fail">部分不满足</span>'}</td>
-        </tr>`;
+    document.getElementById('designResults').style.display = 'block';
+    document.getElementById('designSummary').textContent = `共 ${data.count} 个可行方案`;
+    document.querySelector('#resultsTable tbody').innerHTML = data.results.map((r, i) => {
+      const ok = Object.values(r.checks).every(Boolean);
+      return `<tr class="${i === 0 && ok ? 'best' : ''}">
+        <td>${i + 1}</td><td>${r.cladThickness}</td><td>${r.baseThickness}</td><td>${r.ssThickness}</td><td>${r.ssWidth}</td>
+        <td>${r.rolledThickness}</td><td>${r.slabThickness}</td><td>${r.slabWidth}</td><td>${r.slabLength}</td><td>${r.rolledLength}</td>
+        <td>${r.compressionRatio}</td><td>${r.costRatio}</td>
+        <td>${ok ? '<span class="tag tag-pass">通过</span>' : '<span class="tag tag-fail">部分不满足</span>'}</td></tr>`;
     }).join('');
-
-    status.textContent = '计算完成';
-    status.style.color = '#27ae60';
+    status.textContent = '计算完成'; status.style.color = '#27ae60';
   } catch (e) {
-    status.textContent = '错误：' + e.message;
-    status.style.color = '#e74c3c';
+    status.textContent = '错误：' + e.message; status.style.color = '#e74c3c';
   } finally {
-    btn.disabled = false;
-    btn.innerHTML = '开始计算';
+    btn.disabled = false; btn.innerHTML = '开始计算';
   }
 }
 </script>

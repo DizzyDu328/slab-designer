@@ -2,6 +2,9 @@ const express = require('express');
 const crypto = require('crypto');
 const fs = require('fs');
 const path = require('path');
+const multer = require('multer');
+const mammoth = require('mammoth');
+const WordExtractor = require('word-extractor');
 
 // Read config from env vars (for cloud deploy) or config.json (for local dev)
 let config;
@@ -16,6 +19,13 @@ config.port = process.env.PORT || config.port || 3000;
 
 const app = express();
 app.use(express.json());
+
+// Ensure uploads directory exists
+const uploadsDir = path.join(__dirname, 'uploads');
+if (!fs.existsSync(uploadsDir)) fs.mkdirSync(uploadsDir, { recursive: true });
+
+// Multer config
+const upload = multer({ dest: uploadsDir, limits: { fileSize: 10 * 1024 * 1024 } });
 
 // ----- Token management -----
 const tokens = new Map();
@@ -70,14 +80,150 @@ app.post('/api/chat', auth, async (req, res) => {
   }
 });
 
-// ----- Slab design calculator -----
+// ----- Order parsing via DeepSeek -----
+app.post('/api/parse-order', auth, upload.single('file'), async (req, res) => {
+  if (!req.file) return res.status(400).json({ error: '请上传文件' });
+  if (!config.deepseekApiKey || config.deepseekApiKey.startsWith('sk-your-')) {
+    return res.status(500).json({ error: 'DeepSeek API Key 未配置' });
+  }
+
+  try {
+    const ext = path.extname(req.file.originalname).toLowerCase();
+    let text;
+
+    // Parse doc/docx to plain text
+    if (ext === '.docx') {
+      const result = await mammoth.extractRawText({ path: req.file.path });
+      text = result.value;
+    } else if (ext === '.doc') {
+      const extractor = new WordExtractor();
+      const doc = await extractor.extract(req.file.path);
+      text = doc.getBody();
+    } else if (ext === '.txt') {
+      text = fs.readFileSync(req.file.path, 'utf-8');
+    } else {
+      fs.unlinkSync(req.file.path);
+      return res.status(400).json({ error: '仅支持 .doc / .docx / .txt 文件' });
+    }
+
+    // Clean up uploaded file
+    fs.unlinkSync(req.file.path);
+
+    if (!text || text.trim().length < 10) {
+      return res.status(400).json({ error: '无法从文件中提取文本，文件可能为空或格式异常' });
+    }
+
+    // Send to DeepSeek for structured extraction
+    const resp = await fetch('https://api.deepseek.com/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${config.deepseekApiKey}`,
+      },
+      body: JSON.stringify({
+        model: 'deepseek-chat',
+        messages: [
+          {
+            role: 'system',
+            content: `你是一个热轧复合板（热轧不锈钢-钢复合板）生产通知单解析助手。
+请从生产通知单文本中提取以下信息，返回纯 JSON（不要 markdown 代码块）：
+
+{
+  "orderId": "订单编号",
+  "contractNo": "合同编号",
+  "orderType": "订单属性（一般/紧急/重点等）",
+  "steelGrade": "钢种/材质牌号",
+  "items": [
+    {
+      "seq": 序号,
+      "cladThickness": 复层厚度(mm),
+      "baseThickness": 基层厚度(mm),
+      "width": 成品宽度(mm),
+      "length": 成品长度(mm),
+      "weight": 单重(吨),
+      "quantity_sheets": 张数,
+      "quantity_tons": 吨位,
+      "remark": "备注"
+    }
+  ],
+  "techRequirements": "技术质量要求全文",
+  "weighMethod": "计重方式",
+  "deliveryDate": "合同交货时间",
+  "shippingMethod": "货运方式",
+  "deliverySequence": "交货顺序"
+}
+
+规则：
+- 如果某个字段在原文中找不到，填 null
+- items 数组从表格行解析，跳过表头和空行
+- 编号、交货期等字段可能在表格之外
+- 只返回 JSON，不要任何解释文字`
+          },
+          {
+            role: 'user',
+            content: `请解析以下生产通知单内容：\n\n${text.substring(0, 6000)}`
+          }
+        ],
+        temperature: 0.1,
+        max_tokens: 2000,
+      }),
+    });
+
+    const data = await resp.json();
+    if (!resp.ok) return res.status(resp.status).json({ error: data.error?.message || 'AI 解析失败' });
+
+    const reply = data.choices?.[0]?.message?.content || '';
+    // Extract JSON from reply (may be wrapped in ```json)
+    const jsonMatch = reply.match(/\{[\s\S]*\}/);
+    if (!jsonMatch) return res.status(500).json({ error: 'AI 未能正确解析订单', raw: reply });
+
+    const parsed = JSON.parse(jsonMatch[0]);
+    res.json({ success: true, order: parsed, rawText: text.substring(0, 500) });
+
+  } catch (e) {
+    // Clean up file if still exists
+    if (req.file && fs.existsSync(req.file.path)) fs.unlinkSync(req.file.path);
+    console.error('Order parse error:', e);
+    res.status(500).json({ error: e.message });
+  }
+});
 // Core rules from 热轧复合板设计规范
 const SS_THICKNESSES = [12, 14, 16];       // 不锈钢标准厚度
 const SS_WIDTHS = [1500, 2000];             // 不锈钢标准宽度
 
+// Factory constraints (max slab width varies by factory)
+const FACTORY_CONSTRAINTS = {
+  'factory-a': { maxSlabWidth: 2500, maxSlabLength: 3900, maxSlabThickness: 630 },
+  'factory-b': { maxSlabWidth: 2500, maxSlabLength: 3900, maxSlabThickness: 630 },
+  'factory-c': { maxSlabWidth: 2300, maxSlabLength: 3800, maxSlabThickness: 600 },
+};
+
+function parseExtraReqs(extraReqs) {
+  // Parse extra requirements like "不锈钢必须用 2000 宽" or "复板加宽20"
+  const rules = { ssWidth: null, ssThickness: null, cladWidthExtra: 0 };
+  if (!extraReqs) return rules;
+  const s = extraReqs;
+  const wMatch = s.match(/不锈钢.*?宽.*?(\d{3,4})/i) || s.match(/ss.*?宽.*?(\d{3,4})/i);
+  if (wMatch) rules.ssWidth = parseInt(wMatch[1]);
+  const tMatch = s.match(/不锈钢.*?厚.*?(\d{1,2})/i) || s.match(/ss.*?厚.*?(\d{1,2})/i);
+  if (tMatch) rules.ssThickness = parseInt(tMatch[1]);
+  const cMatch = s.match(/复板.*?加宽.*?(\d+)/i) || s.match(/余量.*?(\d+)/i);
+  if (cMatch) rules.cladWidthExtra = parseInt(cMatch[1]);
+  return rules;
+}
+
 function designSlab(input) {
-  const { targetThickness, targetWidth, targetLength, cladRatio, customSS } = input;
+  const { targetThickness, targetWidth, targetLength, cladRatio, customSS, priority, factory, extraReqs } = input;
   const results = [];
+
+  // Parse extra requirements
+  const extras = parseExtraReqs(extraReqs);
+
+  // Factory constraints
+  const fc = factory ? FACTORY_CONSTRAINTS[factory] : FACTORY_CONSTRAINTS['factory-a'];
+  const maxSlabWidth = fc ? fc.maxSlabWidth : 2500;
+  const maxSlabLength = fc ? fc.maxSlabLength : 3900;
+  const maxSlabThick = fc ? fc.maxSlabThickness : 630;
 
   // 覆板厚和基板厚的候选范围（基于成品厚度反推）
   // 轧制厚度 = (覆板厚 + 基板厚) × 2 + 0.6，令其逼近成品厚度
@@ -94,8 +240,10 @@ function designSlab(input) {
     baseCandidates.push(b);
   }
 
-  const ssThicks = customSS?.thickness ? [customSS.thickness] : SS_THICKNESSES;
-  const ssWidths = customSS?.width ? [customSS.width] : SS_WIDTHS;
+  const ssThicks = customSS?.thickness ? [customSS.thickness] :
+    (extras.ssThickness ? [extras.ssThickness] : SS_THICKNESSES);
+  const ssWidths = customSS?.width ? [customSS.width] :
+    (extras.ssWidth ? [extras.ssWidth] : SS_WIDTHS);
 
   for (const clad of cladCandidates) {
     for (const base of baseCandidates) {
@@ -140,14 +288,14 @@ function designSlab(input) {
           // 板坯长度（从轧制长度/压缩比反推）
           const slabLength = Math.round(rolledLength / compressionRatio);
 
-          // Rule 7: 复板尺寸 = 基板尺寸 - 80
-          const cladWidth = bestSlabWidth - 80;
+          // Rule 7: 复板尺寸 = 基板尺寸 - 80 (plus extras)
+          const cladWidth = bestSlabWidth - 80 + (extras.cladWidthExtra || 0);
 
-          // 约束检查
+          // 约束检查 (using factory constraints)
           const checks = {
-            widthLimit: bestSlabWidth <= 2500,
-            lengthLimit: slabLength <= 3900,
-            thickLimit: slabThickness <= 630,
+            widthLimit: bestSlabWidth <= maxSlabWidth,
+            lengthLimit: slabLength <= maxSlabLength,
+            thickLimit: slabThickness <= maxSlabThick,
             widthMargin: targetWidth ? (Math.abs((bestSlabWidth / ssWidth) * ssWidth - targetWidth - 40) <= 20) : true,
           };
           if (!Object.values(checks).every(Boolean)) continue;
@@ -169,6 +317,8 @@ function designSlab(input) {
             compressionRatio: Math.round(compressionRatio * 100) / 100,
             cladWidth: Math.round(cladWidth),
             costRatio: Math.round(costRatio * 100) / 100,
+            priority: priority || 'normal',
+            factory: factory || '不限',
             checks,
           });
         }
