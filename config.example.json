@@ -1,0 +1,5 @@
+{
+  "deepseekApiKey": "sk-your-deepseek-api-key-here",
+  "adminPassword": "admin123",
+  "port": 3000
+}
